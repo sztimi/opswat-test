@@ -17,7 +17,7 @@ The next 2 checks are for the CPUs. First it counts the number of cores, then ch
 Number of cores are taken from `/proc/cpuinfo`, while the AVX support is checked using `lscpu`.
 
 ### RAM check
-RAM value is taken from the command `free` and is rounded to 2 decimal places. 
+RAM value is taken from the command `free` and is rounded to 2 decimal places.
 
 Since the value is not an integer, we use `bc` to compare the given and expected values.
 
