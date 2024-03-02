@@ -1,113 +1,130 @@
 #!/bin/bash
 
+set -e -u -o pipefail
+
+compare() {
+  given_value="$1"
+  relation="$2"
+  expected_value="$3"
+  component_name="$4"
+
+  echo "- ${component_name} -"
+
+  comparison_cmd=''
+
+  case $relation in
+    '==')
+      comparison_cmd="[ '${given_value}' == '${expected_value}' ]"
+      echo "expected value: ${expected_value}"
+      ;;
+    '-le')
+      comparison_cmd="[ $((given_value)) -le $((expected_value)) ]"
+      echo "expected value: <= ${expected_value}"
+      ;;
+    '-ge')
+      comparison_cmd="[ $((given_value)) -ge $((expected_value)) ]"
+      echo "expected value: >= ${expected_value}"
+      ;;
+    '-eq')
+      comparison_cmd="[ $((given_value)) -eq $((expected_value)) ]"
+      echo "expected value: ${expected_value}"
+      ;;
+    *)
+      echo "ERROR: Unknown relation '${relation}'"
+      exit 1
+      ;;
+  esac
+
+  echo "given value: ${given_value}"
+
+  if eval "${comparison_cmd}"; then
+    echo -e "\e[32mPASSED\e[0m"
+    echo ""
+    return 0
+  fi
+
+  echo -e "\e[31mFAILED\e[0m"
+  echo ""
+  return 1
+}
+
+compare_bool() {
+  given_value="$1"
+  expected_value="$2"
+  comparison_result="$3"
+  component_name="$4"
+
+  echo "- ${component_name} -"
+  echo "expected value: ${expected_value}"
+  echo "given value: ${given_value}"
+
+  if [ $((comparison_result)) -eq 1 ]; then
+    echo -e "\e[32mPASSED\e[0m"
+    echo ""
+    return 0
+  fi
+
+  echo -e "\e[31mFAILED\e[0m"
+  echo ""
+  return 1
+}
+
 check_os_name() {
-  echo "- OS -"
   expected_value='Ubuntu'
   os_name=$(grep '^NAME=' /etc/os-release | cut -f2 -d'=' | tr -d '"')
 
-  echo "expected value: ${expected_value}"
-  echo "set value: ${os_name}"  
-  if [[ "${os_name}" == "${expected_value}" ]]; then
-    echo -e "\e[32mOS - PASSED\e[0m"
-    echo ""
-    return 0
-  fi
+  compare "${os_name}" '==' "${expected_value}" 'OS'
 
-  echo -e "\e[31mOS - FAILED\e[0m"
-  echo ""
-  return 1
+  return "$?"
 }
 
 check_ubuntu_version() {
-  echo "- Major version -"
   maximum_version='20'
   major_version=$(grep VERSION_ID /etc/os-release | cut -f2 -d'=' | tr -d '"' | cut -f1 -d'.')
-  
-  echo "expected value: <= ${maximum_version}"
-  echo "set value: ${major_version}"
-  if [[ $((major_version)) -le $((maximum_version)) ]]; then
-    echo -e "\e[32mVersion - PASSED\e[0m"
-    echo ""
-    return 0
-  fi
 
-  echo -e "\e[31mVersion - FAILED\e[0m"
-  echo ""
-  return 1
+  compare "${major_version}" '-le' "${maximum_version}" 'Major version'
+
+  return "$?"
 }
 
 check_vcpu_count() {
-  echo "- Number of vCPUs -"
   expected_value='8'
   cpu_count=$(grep -c '^processor' /proc/cpuinfo)
 
-  echo "expected value: >= ${expected_value}"
-  echo "set value: ${cpu_count}"  
-  if [[ $((cpu_count)) -ge $((expected_value)) ]]; then
-    echo -e "\e[32mvCPU - PASSED\e[0m"
-    echo ""
-    return 0
-  fi
+  compare "${cpu_count}" '-ge' "${expected_value}" 'Number of vCPUs'
 
-  echo -e "\e[31mvCPU - FAILED\e[0m"
-  echo ""
-  return 1
+  return "$?"
 }
 
 check_avx_support() {
-  echo "- AVX support -"
   expected_value='true'
   avx_support=$(lscpu | grep '^Flags:' | grep avx > /dev/null && echo 'true' || echo 'false')
 
-  echo "expected value: ${expected_value}"
-  echo "set value: ${avx_support}"  
-  if [[ "${expected_value}" == "${avx_support}" ]]; then
-    echo -e "\e[32mAVX support - PASSED\e[0m"
-    echo ""
-    return 0
-  fi
+  compare "${avx_support}" '==' "${expected_value}" 'AVX support'
 
-  echo -e "\e[31mAVX support - FAILED\e[0m"
-  echo ""
-  return 1
+  return "$?"
 }
 
 check_ram() {
-  echo "- RAM -"
   expected_value='16'
   ram_value=$(free -m | awk '/Mem:/ {printf "%.2f\n", $2/1024}' | tr ',' '.')
 
-  echo "expected value: >= ${expected_value}GB"
-  echo "set value: ${ram_value}GB"
-  if [ $(echo "${ram_value} > ${expected_value}" | bc) -eq 1 ]; then
-    echo -e "\e[32mRAM - PASSED\e[0m"
-    echo ""
-    return 0
-  fi
+  comparison_result=$(echo "${ram_value} > ${expected_value}" | bc)
 
-  echo -e "\e[31mRAM - FAILED\e[0m"
-  echo ""
-  return 1
+  compare_bool "${ram_value}" "${expected_value}" "${comparison_result}" 'RAM'
+
+  return "$?"
 }
 
 check_disk() {
-  echo "- Free disk space -"
   install_path="${HOME}"
   expected_value='32'
   df_value=$(df -BG --output=avail "${install_path}" | tail -1 | tr -d 'G')
   df_value=$(awk '{$1=$1};1' <<< "${df_value}")
 
-  echo "expected value: >= ${expected_value}GB"
-  echo "set value: ${df_value}GB"  
-  if [[ $((df_value)) -ge $((expected_value)) ]]; then
-    echo -e "\e[32mDisk - PASSED\e[0m"
-    echo ""
-    return 0
-  fi
+  compare "${df_value}" '-ge' "${expected_value}" 'Free disk space'
 
-  echo -e "\e[31mDisk - FAILED\e[0m"
-  echo ""
-  return 1
+  return "$?"
 }
 
 
