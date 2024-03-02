@@ -7,54 +7,56 @@ Web Apps are new to me as we use images and helm charts to deploy everything, so
 ## Manual steps
 
 ### Preparation
+install azure cli
 ```
-# install azure cli
 https://learn.microsoft.com/en-us/cli/azure/install-azure-cli-windows?tabs=azure-cli#latest-version
 ```
+
+azure authentication
 ```
-# azure authentication
 az login
 ```
+
 ### Create the environment
+create resource-group
 ```
-# create resource-group
 az group create --location westeurope --name rg-sample-nodejs
 ```
+
+create app service plan
 ```
-# create app service plan
 az appservice plan create \
    --resource-group rg-sample-nodejs \
    --name sztimi-sample-nodejs-service-plan \
    --is-linux
 ```
+
+create web app service
 ```
-# create web app service
 az webapp create \
     --name sztimi-sample-nodejs \
     --plan sztimi-sample-nodejs-service-plan \
     --resource-group rg-sample-nodejs \
     --runtime "NODE:20-lts"
+```
+*I will use 'nodejs-v20' branch to match the node version set here.*
 
-# I will use 'nodejs-v20' branch to match the node version set here
-```
 ### GitHub settings
-```
-# fork the repository
-```
-```
-# make sure that actions are enabled
-```
-```
-# download publish profile from Azure portal
+
+fork the repository
+
+make sure that actions are enabled
+
+download publish profile from Azure portal  
 Azure portal -> Web app -> "Download publish profile" on Overview page
 
-# configure secret in GitHub
+configure secret in GitHub  
 GitHub repo -> Settings -> Secrets and variables -> Actions -> New repository secret
-- name: AZURE_WEBAPP_PUBLISH_PROFILE
-- secret: contents of the downloaded file
+  - name: AZURE_WEBAPP_PUBLISH_PROFILE
+  - secret: contents of the downloaded file
+
+add workflow file to the github repository
 ```
-```
-# add workflow file to the github repository
 # File: .github/workflows/workflow.yml
 on:
   push:
