@@ -115,7 +115,7 @@ jobs:
 
 ## Terraform
 
-The Terraform solution creates a resource group, a service plan and then a web app. Once these are created, it commits `contrib/workflow.yml` to the given repository, triggering GitHub Actions and deploying the application.
+The Terraform solution creates a resource group, a service plan and then a web app. Once these are created, it commits a `workflow.yml` file to the given repository, triggering GitHub Actions and deploying the application.
 
 ### Preparation
 install azure cli
@@ -168,19 +168,16 @@ github_branch     = "<branch_name>"
 github_org        = "<github_organization_name>"
 ```
 
-### Create plan and apply
 initialize deployment
 ```
 terraform init -upgrade
 ```
 
-create execution plan
+### Create plan and apply (Update)
+
+create and apply execution plan
 ```
 terraform plan -out main.tfplan -var-file="terraform.tfvars"
-```
-
-apply execution plan
-```
 terraform apply main.tfplan
 ```
 
