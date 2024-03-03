@@ -112,3 +112,82 @@ jobs:
         publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
         package: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
 ```
+
+## Terraform
+
+The Terraform solution creates a resource group, a service plan and then a web app. Once these are created, it commits `contrib/workflow.yml` to the given repository, triggering GitHub Actions and deploying the application.
+
+### Preparation
+install azure cli
+```
+https://learn.microsoft.com/en-us/cli/azure/install-azure-cli-windows?tabs=azure-cli#latest-version
+```
+
+install terraform
+```
+https://developer.hashicorp.com/terraform/install
+```
+
+azure authentication
+```
+az login
+```
+
+in case of multiple subscriptions, make sure you set the right one
+```
+az account set --subscription "<subscription_id_or_subscription_name>"
+```
+
+create a service principal
+```
+az ad sp create-for-rbac --name "<sp_name>" --role Contributor --scopes "/subscriptions/<subscription_id>"
+```
+
+fork the repository and make sure that GitHub Actions is enabled
+
+create a GitHub secret called 'AZURE_CREDENTIALS' for the service principal credentials
+```
+{
+"clientId": "",
+"clientSecret": "",
+"subscriptionId": "",
+"tenantId": ""
+}
+```
+
+create `terraform.tfvars` for the secrets
+```
+subscription_id   = "<azure_subscription_id>"
+tenant_id         = "<azure_tenant_id>"
+client_id         = "<service_principal_id>"
+client_secret     = "<service_principal_secret>"
+
+github_token      = "<github_access_token>"
+github_repository = "<github_repository_name>"
+github_branch     = "<branch_name>"
+github_org        = "<github_organization_name>"
+```
+
+### Create plan and apply
+initialize deployment
+```
+terraform init -upgrade
+```
+
+create execution plan
+```
+terraform plan -out main.tfplan -var-file="terraform.tfvars"
+```
+
+apply execution plan
+```
+terraform apply main.tfplan
+```
+
+### Cleanup
+
+create plan for cleanup and apply it
+```
+terraform plan -destroy -out main.destroy.tfplan
+terraform apply main.destroy.tfplan
+```

@@ -2,7 +2,11 @@ terraform {
   required_providers {
     azurerm = {
       source = "hashicorp/azurerm"
-      version = "~>2.0"
+      version = "~>3.0"
+    }
+    github = {
+      source  = "integrations/github"
+      version = "~> 6.0"
     }
   }
 }
@@ -10,8 +14,13 @@ terraform {
 provider "azurerm" {
   features {}
 
-  subscription_id   = "defd2967-afdd-4091-8b77-dec4f7e880c9"
-  tenant_id         = "a1fa26d7-43d0-4c83-9f20-a7a7d3aed0e1"
-  client_id         = "78c757dc-3502-4742-afbd-affec5b96fec"
-  client_secret     = "DKa8Q~gqqD.1LThwe_GGhjazBVPnfqgk5~drGdde"
+  subscription_id = var.subscription_id
+  tenant_id       = var.tenant_id
+  client_id       = var.client_id
+  client_secret   = var.client_secret
+}
+
+provider "github" {
+  token = var.github_token
+  owner = var.github_org
 }
