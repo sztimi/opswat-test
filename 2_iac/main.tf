@@ -23,21 +23,6 @@ resource "azurerm_linux_web_app" "web_app" {
   }
 }
 
-/*data "local_file" "input" {
-  filename = "contrib/workflow.yml"
-}
-
-resource "github_repository_file" "add_workflow" {
-  repository          = var.github_repository
-  branch              = var.github_branch
-  file                = ".github/workflows/workflow.yml"
-  content             = data.local_file.input.content
-  commit_message      = "Managed by Terraform"
-  commit_author       = "Terraform User"
-  commit_email        = "terraform@example.com"
-  overwrite_on_create = true
-}*/
-
 resource "github_repository_file" "add_workflow" {
   depends_on = [azurerm_linux_web_app.web_app]
 

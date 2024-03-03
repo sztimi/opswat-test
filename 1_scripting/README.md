@@ -2,7 +2,7 @@
 
 The script `system_check.sh` had been created to check systems if they are meeting minimum requirements.
 
-Each check is defined in a different function, prints the expected and set values and evaluates if the given criterias are fulfilled or not. The script also gives a final verdict in the end. The verdicts are also colored green/red based on the results.
+Each check is defined in a different function, prints the expected and given values and evaluates if the given criterias are fulfilled or not. The script also gives a final verdict in the end. The verdicts are also colored green/red based on the results.
 
 ## List of checks
 
@@ -23,6 +23,6 @@ Since the value is not an integer, we use `bc` to compare the given and expected
 
 
 ### Disk check
-The free disk space check expects the path the we want to use for installation/storage. It is set to `$HOME` by default.
+The free disk space check expects the path that we want to use for installation/storage. It is set to `$HOME` by default.
 
 Available value is taken from `df`.

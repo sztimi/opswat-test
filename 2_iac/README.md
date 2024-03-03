@@ -145,7 +145,7 @@ az ad sp create-for-rbac --name "<sp_name>" --role Contributor --scopes "/subscr
 
 fork the repository and make sure that GitHub Actions is enabled
 
-create a GitHub secret called 'AZURE_CREDENTIALS' for the service principal credentials
+create a GitHub secret called 'AZURE_CREDENTIALS' for the service principal
 ```
 {
 "clientId": "",
@@ -173,7 +173,7 @@ initialize deployment
 terraform init -upgrade
 ```
 
-### Create plan and apply (Update)
+### Deploy/Update
 
 create and apply execution plan
 ```
@@ -188,3 +188,14 @@ create plan for cleanup and apply it
 terraform plan -destroy -out main.destroy.tfplan
 terraform apply main.destroy.tfplan
 ```
+
+## Application changes
+Changes in the application are picked up automatically. A commit to the branch triggers GitHub Actions which builds and redeploys the application.
+
+## Scaling
+
+Resources can be changed by modifying the `sku_name` parameter in the service plan. This parameter defines the vCPU, Memory, Storage and the amount of instances we can have for scaling out.
+
+Assuming that the application is CPU heavy, at first I would pick `Premium v3 P3V3` as it has the most cores and also has elastic auto scale. It can scale out up to 30 instances.
+
+Then I'd monitor the performance, listen to feedback if any and decide if change is needed based on that. With that knowledge it would be possible to let go of elastic auto scale and define my own rules.
